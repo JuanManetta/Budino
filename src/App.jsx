@@ -4,22 +4,25 @@ import {
   ShoppingBag, 
   Calendar as CalendarIcon, 
   Package, 
+  Receipt,
   Plus, 
   Trash2, 
   Edit2,
   Check,
   X,
   TrendingUp, 
+  TrendingDown,
   DollarSign,
   CheckCircle2,
   Loader2,
   Lock,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Wallet
 } from "lucide-react";
 import { supabase } from "./supabaseClient";
-import budinoLogo from "../public/budinoLogo.jpg";
 import './App.css';
+import budinoLogo from '../public/budinoLogo.jpg';
 
 export default function App() {
   const [isAutenticado, setIsAutenticado] = useState(() => {
@@ -31,12 +34,13 @@ export default function App() {
   const [activeTab, setActiveTab] = useState("resumen");
   const [ventas, setVentas] = useState([]);
   const [productosCatalogo, setProductosCatalogo] = useState([]);
+  const [compras, setCompras] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Estado para el día seleccionado en el calendario
   const [diaSeleccionado, setDiaSeleccionado] = useState(null);
 
-  // Estado para navegar por los meses en el calendario
+  // Estado para navegar por los meses (compartido entre Resumen y Calendario)
   const [fechaVista, setFechaVista] = useState(new Date());
 
   // Formulario nueva venta
@@ -58,7 +62,13 @@ export default function App() {
   const [editPeso, setEditPeso] = useState("");
   const [editPrecio, setEditPrecio] = useState("");
 
-  const CLASE_SECRETA = "Manetta010304"; // Contraseña de acceso
+  // Formulario nueva compra / gasto
+  const [conceptoCompra, setConceptoCompra] = useState("");
+  const [categoriaCompra, setCategoriaCompra] = useState("Materia Prima");
+  const [montoCompra, setMontoCompra] = useState("");
+  const [mensajeExitoCompra, setMensajeExitoCompra] = useState(false);
+
+  const CLASE_SECRETA = "miga2026"; // Contraseña de acceso
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -73,7 +83,6 @@ export default function App() {
 
   useEffect(() => {
     if (isAutenticado) {
-      // eslint-disable-next-line react-hooks/immutability
       fetchDatos();
     }
   }, [isAutenticado]);
@@ -81,6 +90,7 @@ export default function App() {
   const fetchDatos = async () => {
     setLoading(true);
     
+    // 1. Productos
     const { data: prods, error: errProds } = await supabase
       .from('productos')
       .select('*')
@@ -95,6 +105,7 @@ export default function App() {
       }
     }
 
+    // 2. Ventas
     const { data: vts, error: errVts } = await supabase
       .from('ventas')
       .select('*')
@@ -102,6 +113,15 @@ export default function App() {
 
     if (errVts) console.error('Error al cargar ventas:', errVts);
     else setVentas(vts || []);
+
+    // 3. Compras / Gastos
+    const { data: cmps, error: errCmps } = await supabase
+      .from('compras')
+      .select('*')
+      .order('fecha', { ascending: false });
+
+    if (errCmps) console.error('Error al cargar compras:', errCmps);
+    else setCompras(cmps || []);
 
     setLoading(false);
   };
@@ -123,15 +143,10 @@ export default function App() {
     }
   };
 
-const agregarVenta = async (e) => {
+  const agregarVenta = async (e) => {
     e.preventDefault();
-    
-    // Búsqueda flexible convirtiendo ambos a String para evitar errores de tipo
     const prod = productosCatalogo.find(p => String(p.id) === String(productoSeleccionadoId));
-    if (!prod) {
-      alert("Error: Selecciona un producto válido del catálogo.");
-      return;
-    }
+    if (!prod) return;
 
     const cantidadNum = Number(nuevaCantidad) || 1;
     const precioTotalCalculado = prod.precio * cantidadNum;
@@ -146,18 +161,15 @@ const agregarVenta = async (e) => {
       fecha: fechaHoy,
     };
 
-    console.log("Intentando insertar venta:", nuevaVenta);
-
     const { data, error } = await supabase
       .from('ventas')
       .insert([nuevaVenta])
       .select();
 
     if (error) {
-      console.error('Error detallado de Supabase:', error);
-      alert('Error al guardar en Supabase: ' + error.message);
+      console.error('Error al guardar venta:', error);
+      alert('Hubo un error al guardar la venta');
     } else if (data) {
-      console.log("Venta guardada con éxito:", data);
       setVentas([data[0], ...ventas]);
       setMensajeExitoVenta(true);
       setTimeout(() => setMensajeExitoVenta(false), 2500);
@@ -165,7 +177,7 @@ const agregarVenta = async (e) => {
       setNuevoPrecio(prod.precio);
     }
   };
-  
+
   const eliminarVenta = async (id) => {
     const { error } = await supabase.from('ventas').delete().eq('id', id);
     if (error) console.error('Error al eliminar:', error);
@@ -238,6 +250,41 @@ const agregarVenta = async (e) => {
     }
   };
 
+  const agregarCompra = async (e) => {
+    e.preventDefault();
+    if (!conceptoCompra || !montoCompra) return;
+
+    const fechaHoy = new Date().toISOString().split("T")[0];
+    const nuevaCompraObj = {
+      concepto: conceptoCompra,
+      categoria: categoriaCompra,
+      monto: Number(montoCompra),
+      fecha: fechaHoy
+    };
+
+    const { data, error } = await supabase
+      .from('compras')
+      .insert([nuevaCompraObj])
+      .select();
+
+    if (error) {
+      console.error('Error al guardar compra:', error);
+      alert('Hubo un error al registrar el gasto');
+    } else if (data) {
+      setCompras([data[0], ...compras]);
+      setConceptoCompra("");
+      setMontoCompra("");
+      setMensajeExitoCompra(true);
+      setTimeout(() => setMensajeExitoCompra(false), 2500);
+    }
+  };
+
+  const eliminarCompra = async (id) => {
+    const { error } = await supabase.from('compras').delete().eq('id', id);
+    if (error) console.error('Error al eliminar gasto:', error);
+    else setCompras(compras.filter(c => c.id !== id));
+  };
+
   // --- AGRUPAR VENTAS POR DÍA ---
   const ventasPorDia = {};
   ventas.forEach(v => {
@@ -250,7 +297,7 @@ const agregarVenta = async (e) => {
     ventasPorDia[fechaKey].lista.push(v);
   });
 
-  // Manejo de meses para el calendario
+  // Manejo de meses
   const mesAnterior = () => {
     setFechaVista(new Date(fechaVista.getFullYear(), fechaVista.getMonth() - 1, 1));
     setDiaSeleccionado(null);
@@ -266,12 +313,29 @@ const agregarVenta = async (e) => {
   const diasEnMes = new Date(year, month + 1, 0).getDate();
   const mesNombre = fechaVista.toLocaleString('es-ES', { month: 'long' });
 
-  // Métricas
+  // --- CÁLCULOS FINANCIEROS FILTRADOS POR EL MES SELECCIONADO ---
   const hoyStr = new Date().toISOString().split("T")[0];
   const ventasHoy = ventas.filter(v => v.fecha && v.fecha.split('T')[0] === hoyStr);
   const totalDia = ventasHoy.reduce((acc, v) => acc + Number(v.precio), 0);
-  const totalSemana = ventas.reduce((acc, v) => acc + Number(v.precio), 0); 
-  const totalMes = ventas.reduce((acc, v) => acc + Number(v.precio), 0);
+
+  // Ventas del mes seleccionado en fechaVista
+  const ventasMesActual = ventas.filter(v => {
+    if (!v.fecha) return false;
+    const [vYear, vMonth] = v.fecha.split('T')[0].split('-');
+    return Number(vYear) === year && Number(vMonth) === (month + 1);
+  });
+  const ingresosMes = ventasMesActual.reduce((acc, v) => acc + Number(v.precio), 0);
+
+  // Gastos del mes seleccionado en fechaVista
+  const comprasMesActual = compras.filter(c => {
+    if (!c.fecha) return false;
+    const [cYear, cMonth] = c.fecha.split('T')[0].split('-');
+    return Number(cYear) === year && Number(cMonth) === (month + 1);
+  });
+  const gastosMes = comprasMesActual.reduce((acc, c) => acc + Number(c.monto), 0);
+
+  // Balance Neto (Ganancia / Pérdida)
+  const balanceNeto = ingresosMes - gastosMes;
 
   const totalUnidades = ventas.reduce((acc, v) => acc + Number(v.cantidad), 0) || 1;
   const conteoProductos = {};
@@ -286,7 +350,7 @@ const agregarVenta = async (e) => {
           <div className="login-icon-box">
             <Lock size={28} color="#8C5835" />
           </div>
-          <span className="header-subtitle">Budino · Pastelería</span>
+          <span className="header-subtitle">Miga · Pastelería</span>
           <h1 className="header-title" style={{ fontSize: '22px', marginBottom: '8px' }}>Acceso Privado ✨</h1>
           <p className="section-desc" style={{ marginBottom: '20px' }}>Ingresa la contraseña para ver el panel.</p>
 
@@ -321,7 +385,7 @@ const agregarVenta = async (e) => {
         
         <header className="app-header">
           <div>
-            <span className="header-subtitle">Budino · Pastelería</span>
+            <span className="header-subtitle">Miga · Pastelería</span>
             <h1 className="header-title">Hola, Ernes ✨</h1>
           </div>
           <div className="header-avatar">
@@ -338,10 +402,27 @@ const agregarVenta = async (e) => {
           <>
             {activeTab === "resumen" && (
               <div className="tab-content">
+                
+                {/* Selector de Mes para el Dashboard */}
+                <div className="card" style={{ padding: '12px 16px' }}>
+                  <div className="cal-header-nav" style={{ margin: 0 }}>
+                    <button onClick={mesAnterior} className="cal-nav-btn">
+                      <ChevronLeft size={18} />
+                    </button>
+                    <span style={{ fontWeight: 700, fontSize: '14px', textTransform: 'capitalize', color: '#4A3525' }}>
+                      Balance de {mesNombre} {year}
+                    </span>
+                    <button onClick={mesSiguiente} className="cal-nav-btn">
+                      <ChevronRight size={18} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* KPI CARDS & DASHBOARD FINANCIERO */}
                 <div className="kpi-container">
                   <div className="kpi-main-card">
                     <div>
-                      <p className="kpi-label">Recaudación del día</p>
+                      <p className="kpi-label">Recaudación de Hoy</p>
                       <h2 className="kpi-value">${totalDia.toLocaleString()}</h2>
                     </div>
                     <div className="kpi-icon-box">
@@ -349,18 +430,47 @@ const agregarVenta = async (e) => {
                     </div>
                   </div>
 
+                  {/* DASHBOARD NETO DEL MES */}
+                  <div className={`finance-dashboard-card ${balanceNeto >= 0 ? 'positive' : 'negative'}`}>
+                    <div className="finance-header">
+                      <div className="finance-title-box">
+                        <Wallet size={20} />
+                        <span>Ganancia Neta del Mes</span>
+                      </div>
+                      <span className={`finance-status-badge ${balanceNeto >= 0 ? 'pos' : 'neg'}`}>
+                        {balanceNeto >= 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+                        {balanceNeto >= 0 ? "En positivo" + " 🟢" : "En negativo" + " 🔴"}
+                      </span>
+                    </div>
+                    <h2 className="finance-net-value">
+                      {balanceNeto >= 0 ? `$${balanceNeto.toLocaleString()}` : `-$${Math.abs(balanceNeto).toLocaleString()}`}
+                    </h2>
+                    <div className="finance-submetrics">
+                      <div>
+                        <span className="sub-label">Ingresos (+):</span>
+                        <span className="sub-val text-green">${ingresosMes.toLocaleString()}</span>
+                      </div>
+                      <div className="divider-v"></div>
+                      <div>
+                        <span className="sub-label">Gastos (-):</span>
+                        <span className="sub-val text-red">-${gastosMes.toLocaleString()}</span>
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="kpi-grid-2">
                     <div className="card">
-                      <p className="card-subtitle">Semanal</p>
-                      <h3 className="card-value">${totalSemana.toLocaleString()}</h3>
+                      <p className="card-subtitle">Ventas Totales</p>
+                      <h3 className="card-value">${ingresosMes.toLocaleString()}</h3>
                     </div>
                     <div className="card">
-                      <p className="card-subtitle">Mensual</p>
-                      <h3 className="card-value">${totalMes.toLocaleString()}</h3>
+                      <p className="card-subtitle">Gastos Totales</p>
+                      <h3 className="card-value" style={{ color: '#dc2626' }}>-${gastosMes.toLocaleString()}</h3>
                     </div>
                   </div>
                 </div>
 
+                {/* FORMULARIO VENTA RÁPIDA */}
                 <div className="card form-card">
                   <h3 className="section-title">
                     <Plus size={20} /> Registrar Venta Rápida
@@ -419,6 +529,7 @@ const agregarVenta = async (e) => {
                       >
                         <option>Transferencia</option>
                         <option>Efectivo</option>
+                        <option>Mercado Pago</option>
                       </select>
                     </div>
 
@@ -456,11 +567,100 @@ const agregarVenta = async (e) => {
               </div>
             )}
 
-            {/* CALENDARIO CON NAVEGACIÓN DE MESES */}
+            {/* PESTAÑA GASTOS / COMPRAS */}
+            {activeTab === "gastos" && (
+              <div className="tab-content">
+                
+                <div className="card">
+                  <h3 className="section-title">
+                    <Receipt size={20} /> Registrar Compra o Gasto
+                  </h3>
+                  
+                  {mensajeExitoCompra && (
+                    <div className="success-alert">
+                      <CheckCircle2 size={16} /> ¡Gasto registrado con éxito!
+                    </div>
+                  )}
+
+                  <form onSubmit={agregarCompra} className="form-stack">
+                    <div className="form-group">
+                      <label>Concepto (ej. Harina 0000, Bolsas 500g)</label>
+                      <input 
+                        type="text" 
+                        placeholder="Ej. Harina 25kg" 
+                        value={conceptoCompra}
+                        onChange={e => setConceptoCompra(e.target.value)}
+                        required
+                        className="form-input"
+                      />
+                    </div>
+
+                    <div className="form-row-2">
+                      <div className="form-group">
+                        <label>Categoría</label>
+                        <select 
+                          value={categoriaCompra} 
+                          onChange={e => setCategoriaCompra(e.target.value)}
+                          className="form-input"
+                        >
+                          <option>Materia Prima</option>
+                          <option>Packaging / Bolsas</option>
+                          <option>Insumos / Varios</option>
+                          <option>Servicios</option>
+                        </select>
+                      </div>
+                      <div className="form-group">
+                        <label>Monto ($)</label>
+                        <input 
+                          type="number" 
+                          placeholder="Ej. 12000" 
+                          value={montoCompra}
+                          onChange={e => setMontoCompra(e.target.value)}
+                          required
+                          className="form-input"
+                        />
+                      </div>
+                    </div>
+
+                    <button type="submit" className="submit-btn">
+                      Guardar Gasto
+                    </button>
+                  </form>
+                </div>
+
+                <div className="card">
+                  <h3 className="section-title">Historial de Compras y Gastos</h3>
+                  {compras.length === 0 ? (
+                    <p className="empty-text">No hay gastos registrados todavía.</p>
+                  ) : (
+                    <div className="sales-list">
+                      {compras.map(c => (
+                        <div key={c.id} className="sale-item">
+                          <div>
+                            <p className="sale-product">{c.concepto}</p>
+                            <p className="sale-details">{c.categoria} · {c.fecha ? c.fecha.split('T')[0] : ''}</p>
+                          </div>
+                          <div className="sale-right">
+                            <span className="sale-price" style={{ color: '#dc2626' }}>
+                              -${Number(c.monto).toLocaleString()}
+                            </span>
+                            <button onClick={() => eliminarCompra(c.id)} className="delete-btn">
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+              </div>
+            )}
+
+            {/* CALENDARIO */}
             {activeTab === "calendario" && (
               <div className="tab-content">
                 <div className="card">
-                  {/* Header de navegación de meses */}
                   <div className="cal-header-nav">
                     <button onClick={mesAnterior} className="cal-nav-btn">
                       <ChevronLeft size={20} />
@@ -507,7 +707,6 @@ const agregarVenta = async (e) => {
                   </div>
                 </div>
 
-                {/* DETALLE DEL DÍA SELECCIONADO */}
                 {diaSeleccionado && ventasPorDia[diaSeleccionado] && (
                   <div className="card">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
@@ -693,6 +892,10 @@ const agregarVenta = async (e) => {
         <button onClick={() => setActiveTab("ventas")} className={`nav-btn ${activeTab === "ventas" ? "active" : ""}`}>
           <ShoppingBag size={20} />
           <span>Ventas</span>
+        </button>
+        <button onClick={() => setActiveTab("gastos")} className={`nav-btn ${activeTab === "gastos" ? "active" : ""}`}>
+          <Receipt size={20} />
+          <span>Gastos</span>
         </button>
         <button onClick={() => setActiveTab("calendario")} className={`nav-btn ${activeTab === "calendario" ? "active" : ""}`}>
           <CalendarIcon size={20} />

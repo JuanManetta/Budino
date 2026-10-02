@@ -593,3 +593,98 @@ body {
   color: #8C5835;
   font-weight: bold;
 }
+
+/* Dashboard Financiero Neto */
+.finance-dashboard-card {
+  background: #FFFFFF;
+  padding: 20px;
+  border-radius: 24px;
+  border: 1px solid #EFE6DC;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.finance-dashboard-card.positive {
+  border-left: 6px solid #10b981;
+}
+
+.finance-dashboard-card.negative {
+  border-left: 6px solid #ef4444;
+}
+
+.finance-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.finance-title-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #78716c;
+}
+
+.finance-status-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.finance-status-badge.pos {
+  background-color: #ecfdf5;
+  color: #047857;
+}
+
+.finance-status-badge.neg {
+  background-color: #fef2f2;
+  color: #dc2626;
+}
+
+.finance-net-value {
+  font-size: 32px;
+  font-weight: 800;
+  color: #332211;
+}
+
+.finance-submetrics {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #FAF6F0;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid #EFE6DC;
+  font-size: 12px;
+}
+
+.sub-label {
+  color: #78716c;
+  margin-right: 4px;
+}
+
+.sub-val {
+  font-weight: 700;
+}
+
+.text-green {
+  color: #047857;
+}
+
+.text-red {
+  color: #dc2626;
+}
+
+.divider-v {
+  width: 1px;
+  height: 16px;
+  background-color: #d6ccc2;
+}
