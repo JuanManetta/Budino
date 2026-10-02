@@ -123,10 +123,15 @@ export default function App() {
     }
   };
 
-  const agregarVenta = async (e) => {
+const agregarVenta = async (e) => {
     e.preventDefault();
-    const prod = productosCatalogo.find(p => p.id === Number(productoSeleccionadoId));
-    if (!prod) return;
+    
+    // Búsqueda flexible convirtiendo ambos a String para evitar errores de tipo
+    const prod = productosCatalogo.find(p => String(p.id) === String(productoSeleccionadoId));
+    if (!prod) {
+      alert("Error: Selecciona un producto válido del catálogo.");
+      return;
+    }
 
     const cantidadNum = Number(nuevaCantidad) || 1;
     const precioTotalCalculado = prod.precio * cantidadNum;
@@ -141,15 +146,18 @@ export default function App() {
       fecha: fechaHoy,
     };
 
+    console.log("Intentando insertar venta:", nuevaVenta);
+
     const { data, error } = await supabase
       .from('ventas')
       .insert([nuevaVenta])
       .select();
 
     if (error) {
-      console.error('Error al guardar venta:', error);
-      alert('Hubo un error al guardar la venta');
+      console.error('Error detallado de Supabase:', error);
+      alert('Error al guardar en Supabase: ' + error.message);
     } else if (data) {
+      console.log("Venta guardada con éxito:", data);
       setVentas([data[0], ...ventas]);
       setMensajeExitoVenta(true);
       setTimeout(() => setMensajeExitoVenta(false), 2500);
@@ -157,7 +165,7 @@ export default function App() {
       setNuevoPrecio(prod.precio);
     }
   };
-
+  
   const eliminarVenta = async (id) => {
     const { error } = await supabase.from('ventas').delete().eq('id', id);
     if (error) console.error('Error al eliminar:', error);
