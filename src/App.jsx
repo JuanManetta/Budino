@@ -18,7 +18,7 @@ import {
   ChevronRight
 } from "lucide-react";
 import { supabase } from "./supabaseClient";
-import {budinoLogo} from "./assets/budinoLogo.jpg";
+import {budinoLogo} from "../public/budinoLogo.jpg";
 import './App.css';
 
 export default function App() {
