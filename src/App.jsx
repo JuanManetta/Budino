@@ -18,6 +18,7 @@ import {
   ChevronRight
 } from "lucide-react";
 import { supabase } from "./supabaseClient";
+import {budinoLogo} from "./assets/budinoLogo.jpg";
 import './App.css';
 
 export default function App() {
@@ -316,7 +317,7 @@ export default function App() {
             <h1 className="header-title">Hola, Ernes ✨</h1>
           </div>
           <div className="header-avatar">
-            <img src="../public/budinoLogo.jpg" alt="Avatar" />
+            <img src={budinoLogo} alt="Avatar" />
           </div>
         </header>
 
@@ -410,7 +411,6 @@ export default function App() {
                       >
                         <option>Transferencia</option>
                         <option>Efectivo</option>
-                        <option>Mercado Pago</option>
                       </select>
                     </div>
 
