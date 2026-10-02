@@ -1,19 +1,26 @@
-# React + Vite
+# 🥐 Budino · Dashboard de Ventas & Pastelería Artesanal
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Aplicación web mobile-first desarrollada a medida para el control de ventas diarios, gestión de catálogo de productos, cálculo automático de recaudación y visualización en calendario interactivo. Diseñada con una estética cálida y artesanal.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## ✨ Características Principales
 
-## React Compiler
+- 🔐 **Acceso Privado:** Pantalla de autenticación con contraseña protegida mediante `localStorage` para uso exclusivo.
+- 📊 **Resumen y Métricas (KPIs):** Visualización instantánea de la recaudación del día, semana y mes.
+- ⚡ **Registro Rápido Inteligente:** Al seleccionar un producto y cambiar la cantidad, la app calcula y multiplica automáticamente el precio total basándose en los datos de la base de datos.
+- 📅 **Calendario Interactivo:** 
+  - Visualización dinámica del mes actual con navegación entre meses.
+  - Marcado automático de días con ventas e indicadores visuales de recaudación (ej. `$5k`).
+  - Panel desplegable con el detalle completo de las ventas al hacer clic en cualquier día.
+- 📦 **Gestión de Catálogo (CRUD):** Permite añadir nuevos productos (nombre, peso/tamaño y precio base), editarlos o eliminarlos en tiempo real.
+- 📈 **Mix de Productos:** Porcentajes de salida y proporción de ventas por variedad y tamaño de budines.
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+---
 
-Note: This will impact Vite dev & build performances.
-You can also try [the experimental native React Compiler support in plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md#rust-react-compiler) by using `compiler: true` in the plugin options instead of using the Babel plugin.
+## 🛠️ Tecnologías Utilizadas
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- **Frontend:** React + Vite
+- **Estilos:** CSS Puro / Tradicional (Diseño *aesthetic* y responsive optimizado para celular)
+- **Iconos:** Lucide React
+- **Base de Datos & Backend:** Supabase (PostgreSQL con Row Level Security activo)
