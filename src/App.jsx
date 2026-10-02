@@ -72,6 +72,7 @@ export default function App() {
 
   useEffect(() => {
     if (isAutenticado) {
+      // eslint-disable-next-line react-hooks/immutability
       fetchDatos();
     }
   }, [isAutenticado]);
