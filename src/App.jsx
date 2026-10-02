@@ -68,7 +68,7 @@ export default function App() {
   const [montoCompra, setMontoCompra] = useState("");
   const [mensajeExitoCompra, setMensajeExitoCompra] = useState(false);
 
-  const CLASE_SECRETA = "miga2026"; // Contraseña de acceso
+  const CLASE_SECRETA = "Manetta010304"; // Contraseña de acceso
 
   const handleLogin = (e) => {
     e.preventDefault();
